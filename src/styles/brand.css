@@ -1,0 +1,134 @@
+/* ============================================================================
+   BOUNTY.GRID brand layer — gold sigil identity over the cyan tactical HUD.
+   Gold carries the brand; cyan stays the instrument colour.
+   ========================================================================== */
+
+:root {
+  --gold: #d4af37;
+  --gold-bright: #f0d67a;
+  --gold-deep: #9a7b1f;
+  --silver: #c9d1d9;
+  --gold-glow: rgba(212, 175, 55, 0.55);
+}
+
+/* ---------- HUD brand lockup ---------- */
+.hud-bar .brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 0 9px var(--gold-glow));
+  animation: sigil-spin 48s linear infinite;
+}
+@keyframes sigil-spin { to { transform: rotate(360deg); } }
+
+.brand-word {
+  font-style: normal;
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  background: linear-gradient(100deg, var(--gold-deep) 0%, var(--gold-bright) 38%, var(--gold) 55%, var(--silver) 88%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--gold);
+}
+.brand-word .dot { -webkit-text-fill-color: var(--gold-bright); color: var(--gold-bright); }
+.hud-bar .brand .tld {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  color: var(--ink-mute);
+}
+
+/* ---------- boot sequence over the logo animation ---------- */
+.boot-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  overflow: hidden;
+}
+.boot-video {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vmin, 760px);
+  height: min(92vmin, 760px);
+  object-fit: cover;
+  pointer-events: none;
+  /* mp4 carries no alpha, so screen-blend drops the black matte to nothing
+     and leaves only the gold light over the page background. */
+  mix-blend-mode: screen;
+}
+/* vignette so the console text stays readable over the vortex */
+.boot-brand::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 45%, transparent 34%, rgba(0,0,0,0.78) 72%);
+  pointer-events: none;
+}
+.boot-inner-brand {
+  position: relative;
+  z-index: 3;
+  align-self: flex-end;
+  margin-bottom: 5vh;
+  width: min(660px, 90vw);
+}
+.boot-lines { min-height: 152px; }
+.boot-inner-brand .boot-line { color: var(--ink-dim); text-shadow: 0 0 10px #000; }
+.boot-inner-brand .boot-line .ok { color: var(--gold-bright); }
+.boot-bar-gold {
+  background: linear-gradient(90deg, var(--gold-deep), var(--gold-bright));
+  box-shadow: 0 0 14px var(--gold-glow);
+}
+.boot-inner-brand .boot-bar-track { background: rgba(212, 175, 55, 0.14); }
+.boot-inner-brand .boot-skip { color: rgba(212, 175, 55, 0.55); }
+
+/* ---------- hero lockup ---------- */
+.hero-lockup {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+.hero-lockup img {
+  width: 92px; height: 92px;
+  filter: drop-shadow(0 0 22px var(--gold-glow));
+  animation: sigil-spin 72s linear infinite;
+}
+.hero-lockup .lock-text { display: flex; flex-direction: column; gap: 2px; }
+.hero-lockup .lock-name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(26px, 4vw, 44px);
+  letter-spacing: 0.1em;
+  line-height: 1;
+  background: linear-gradient(100deg, var(--gold-deep) 0%, var(--gold-bright) 34%, var(--gold) 52%, var(--silver) 86%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero-lockup .lock-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  color: var(--gold);
+  opacity: 0.85;
+}
+
+/* gold accents on money-bearing UI */
+.recon-bounty,
+.collect-reward,
+.wanted-reward { color: var(--gold-bright); }
+.btn.gold {
+  background: linear-gradient(100deg, var(--gold-deep), var(--gold-bright));
+  border-color: var(--gold);
+  color: #1a1200;
+}
+.btn.gold:hover { box-shadow: 0 0 18px var(--gold-glow); }
+
+@media (max-width: 720px) {
+  .hud-bar .brand .tld { display: none; }
+  .hero-lockup img { width: 62px; height: 62px; }
+}

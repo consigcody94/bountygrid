@@ -1,0 +1,11 @@
+node_modules
+dist
+.env.local
+.env.*.local
+public/__tmpvid.mp4
+
+# editor / OS noise
+.vscode
+.idea
+.DS_Store
+Thumbs.db
