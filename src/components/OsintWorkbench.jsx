@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { playBeep, playLock, playRadar } from '../utils/audio.js'
 import { FALLBACK_WANTED } from '../data/fallback.js'
@@ -50,10 +50,17 @@ export const OSINT_CATEGORIES = [
   }
 ]
 
-export default function OsintWorkbench({ onCourtSearch }) {
+export default function OsintWorkbench({ wanted, onCourtSearch }) {
+  const targets = wanted?.items?.length ? wanted.items : FALLBACK_WANTED
   const [activeCategory, setActiveCategory] = useState(OSINT_CATEGORIES[0].id)
-  const [selectedTarget, setSelectedTarget] = useState(FALLBACK_WANTED[0].name)
+  const [selectedTarget, setSelectedTarget] = useState(targets[0]?.name || '')
   const [generatedDorks, setGeneratedDorks] = useState([])
+
+  useEffect(() => {
+    if (!targets.some(target => target.name === selectedTarget)) {
+      setSelectedTarget(targets[0]?.name || '')
+    }
+  }, [targets, selectedTarget])
 
   const currentCategory = OSINT_CATEGORIES.find(c => c.id === activeCategory) || OSINT_CATEGORIES[0]
 
@@ -107,7 +114,7 @@ export default function OsintWorkbench({ onCourtSearch }) {
             value={selectedTarget}
             onChange={e => generateDorkPack(e.target.value)}
           >
-            {FALLBACK_WANTED.map(w => (
+            {targets.map(w => (
               <option key={w.uid} value={w.name}>{w.name} — [{w.offices || 'Federal Warrant'}]</option>
             ))}
           </select>
@@ -124,7 +131,7 @@ export default function OsintWorkbench({ onCourtSearch }) {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="dorks-title">◈ GENERATED PASSIVE SEARCH SYNTAX (CLICK TO EXECUTE):</div>
+          <div className="dorks-title">Generated public-source queries</div>
           <div className="dorks-grid">
             {generatedDorks.map((d, i) => (
               <div key={i} className="dork-card">

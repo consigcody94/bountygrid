@@ -44,8 +44,8 @@ export default function CityComparison({ cities, defaultCityA, defaultCityB, onS
       .join(' ')
   }
 
-  const colorA = '#00f0ff'
-  const colorB = '#ff2f5f'
+  const colorA = '#8eafb9'
+  const colorB = '#b87976'
 
   const scoreDiff = (cityA.safetyScore || 0) - (cityB.safetyScore || 0)
   const saferCity = scoreDiff >= 0 ? cityA : cityB
@@ -54,13 +54,13 @@ export default function CityComparison({ cities, defaultCityA, defaultCityB, onS
   return (
     <div className="panel comparison-panel">
       <div className="panel-title">
-        ⚔ TACTICAL THREAT DUEL // HEAD-TO-HEAD CITY RADAR
-        <span className="meta">MULTI-VECTOR COMPARISON ENGINE</span>
+        City comparison
+        <span className="meta">Six-indicator view</span>
       </div>
 
       <div className="compare-selectors">
         <div className="city-select-box a-side">
-          <span className="side-badge" style={{ borderColor: colorA, color: colorA }}>TARGET ALPHA</span>
+          <span className="side-badge" style={{ borderColor: colorA, color: colorA }}>CITY A</span>
           <select
             value={cityAName}
             onChange={e => {
@@ -79,7 +79,7 @@ export default function CityComparison({ cities, defaultCityA, defaultCityB, onS
         <div className="vs-tag">VS</div>
 
         <div className="city-select-box b-side">
-          <span className="side-badge" style={{ borderColor: colorB, color: colorB }}>TARGET BRAVO</span>
+          <span className="side-badge" style={{ borderColor: colorB, color: colorB }}>CITY B</span>
           <select
             value={cityBName}
             onChange={e => {
@@ -142,7 +142,7 @@ export default function CityComparison({ cities, defaultCityA, defaultCityB, onS
             {/* City A Polygon */}
             <motion.polygon
               points={polygonPath(cityA)}
-              fill="rgba(0, 240, 255, 0.22)"
+              fill="rgba(142, 175, 185, 0.18)"
               stroke={colorA}
               strokeWidth="2.5"
               initial={{ opacity: 0, scale: 0.8 }}
@@ -153,7 +153,7 @@ export default function CityComparison({ cities, defaultCityA, defaultCityB, onS
             {/* City B Polygon */}
             <motion.polygon
               points={polygonPath(cityB)}
-              fill="rgba(255, 47, 95, 0.22)"
+              fill="rgba(184, 121, 118, 0.16)"
               stroke={colorB}
               strokeWidth="2.5"
               initial={{ opacity: 0, scale: 0.8 }}
@@ -175,7 +175,7 @@ export default function CityComparison({ cities, defaultCityA, defaultCityB, onS
         {/* Vector breakdown table & AI Assessment */}
         <div className="metrics-col">
           <div className="assessment-card">
-            <div className="assess-tag">◈ COMPARATIVE TACTICAL ASSESSMENT</div>
+            <div className="assess-tag">Comparative assessment</div>
             <div className="assess-body">
               <b>{saferCity.name}</b> holds a <b>{gapAbs} point</b> safety advantage over <b>{scoreDiff >= 0 ? cityB.name : cityA.name}</b>.
               {gapAbs > 25

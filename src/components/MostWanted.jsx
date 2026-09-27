@@ -8,7 +8,7 @@ import { playBeep, playLock, playRadar } from '../utils/audio.js'
 function TacticalAvatar({ name, classification }) {
   const hash = Array.from(name || '').reduce((acc, char) => acc + char.charCodeAt(0), 0)
   const isFemale = /RUJA|FEMALE|WOMAN/i.test(name || '')
-  const color = classification?.toLowerCase().includes('cyber') ? '#00f0ff' : '#ff2f5f'
+  const color = classification?.toLowerCase().includes('cyber') ? '#8eafb9' : '#b87976'
 
   return (
     <div className="tactical-avatar-box" style={{ borderColor: color }}>

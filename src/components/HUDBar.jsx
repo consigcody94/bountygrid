@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { toggleAudio, isAudioMuted, playBeep } from '../utils/audio.js'
 
 const FEEDS = [
-  ['fbi', 'FBI-CDE'],
-  ['news', 'GDELT-2.0'],
-  ['incidents', 'CITY-WIRE'],
-  ['wanted', 'FBI-WANTED'],
-  ['courts', 'COURTS'],
+  ['fbi', 'FBI / CDE'],
+  ['news', 'GDELT'],
+  ['incidents', 'OPEN DATA'],
+  ['wanted', 'FBI WANTED'],
+  ['courts', 'COURT LISTENER'],
 ]
 
 export default function HUDBar({ status, crtEnabled, onToggleCrt }) {
@@ -28,7 +28,7 @@ export default function HUDBar({ status, crtEnabled, onToggleCrt }) {
       <div className="brand">
         <img className="brand-mark" src="/brand/mark-alpha-128.png" alt="" />
         <em className="brand-word">BOUNTY<span className="dot">.</span>GRID</em>
-        <span className="tld"> // MANHUNT MATRIX</span>
+        <span className="tld"> // PUBLIC SAFETY RESEARCH</span>
       </div>
 
       <div className="hud-clock">
@@ -40,15 +40,15 @@ export default function HUDBar({ status, crtEnabled, onToggleCrt }) {
 
       <div className="hud-actions">
         <div className="hud-toggle-btn active" style={{ cursor: 'default', color: 'var(--mint)', borderColor: 'rgba(63,255,176,0.35)' }}>
-          🌐 AUTO-TRANSLATE: EN [ON]
+          Translation: English
         </div>
 
         <button
           className={`hud-toggle-btn ${!muted ? 'active' : ''}`}
           onClick={handleAudioToggle}
-          title="Toggle Synthesized Cyber Audio FX"
+          title="Toggle interface audio"
         >
-          {!muted ? '🔊 AUDIO ON' : '🔇 AUDIO OFF'}
+          {!muted ? 'Audio on' : 'Audio off'}
         </button>
 
         <button
@@ -57,9 +57,9 @@ export default function HUDBar({ status, crtEnabled, onToggleCrt }) {
             playBeep()
             onToggleCrt()
           }}
-          title="Toggle CRT Scanline Shader Overlay"
+          title="Toggle scanline overlay"
         >
-          {crtEnabled ? '▦ CRT ON' : '▢ CRT OFF'}
+          {crtEnabled ? 'Scanlines on' : 'Scanlines off'}
         </button>
       </div>
 

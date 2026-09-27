@@ -14,6 +14,7 @@ import {
 import MostWanted from './components/MostWanted.jsx'
 import BountyDesk from './components/BountyDesk.jsx'
 import ReconDesk from './components/ReconDesk.jsx'
+import SocialRecon from './components/SocialRecon.jsx'
 import SatelliteRecon from './components/SatelliteRecon.jsx'
 import OsintWorkbench from './components/OsintWorkbench.jsx'
 import ShodanRecon from './components/ShodanRecon.jsx'
@@ -57,11 +58,11 @@ export default function App() {
   const [booting, setBooting] = useState(true)
   const [crtEnabled, setCrtEnabled] = useState(false)
   const [status, setStatus] = useState({
-    fbi: 'online',
-    news: 'online',
-    incidents: 'online',
-    courts: 'online',
-    wanted: 'online',
+    fbi: 'pending',
+    news: 'pending',
+    incidents: 'pending',
+    courts: 'pending',
+    wanted: 'pending',
   })
   const [wanted, setWanted] = useState({ items: [], ok: true, total: 0 })
   const [news, setNews] = useState({ items: [] })
@@ -91,14 +92,14 @@ export default function App() {
   const loadNews = useCallback(async () => {
     const res = await fetchGlobalNews()
     setNews(res)
-    setLight('news', res.ok)
+    setLight('news', res.source === 'live')
   }, [])
 
   const loadIncidents = useCallback(async () => {
     const res = await fetchIncidents()
     setIncidents(res)
     setLastSync(new Date())
-    setLight('incidents', res.ok)
+    setLight('incidents', res.source === 'live')
   }, [])
 
   const runCourtSearch = useCallback(async (q, courtFilter = '') => {
@@ -169,21 +170,41 @@ export default function App() {
 
   const handleTraceLead = useCallback(lead => {
     playRadar()
-    const targetCity = CITIES.find(c => c.name.toLowerCase() === lead.primaryCity.toLowerCase()) || {
-      name: lead.primaryCity,
-      country: 'Target Sector',
-      iso2: '',
-      lat: lead.targetCoords.lat,
-      lng: lead.targetCoords.lng,
-      adhoc: true,
-      population: 1000000,
-      safetyScore: 45,
-      homicideRate: 25.0,
-      tier: 'high-risk',
-      grade: 'D',
-      briefing: lead.summary,
+    // Compiled dossiers are country-level research, not geolocated sightings.
+    // Older UI code assumed every lead had primaryCity/targetCoords and crashed
+    // when the button was clicked. Use a clearly labelled regional anchor when
+    // a dossier does not contain a verified city coordinate.
+    const requestedCity = String(lead.primaryCity || '').trim().toLowerCase()
+    const targetCity = CITIES.find(c => c.name.toLowerCase() === requestedCity)
+    const country = String(lead.country || '').split('/')[0].trim()
+    const countryCity = CITIES.find(c => c.country.toLowerCase() === country.toLowerCase())
+    const regionAnchors = {
+      honduras: { name: 'Honduras region', lat: 14.0723, lng: -87.1921 },
+      bulgaria: { name: 'Bulgaria region', lat: 42.6977, lng: 23.3219 },
+      russia: { name: 'Russia region', lat: 55.7558, lng: 37.6173 },
+      vietnam: { name: 'Vietnam region', lat: 21.0278, lng: 105.8342 },
+      india: { name: 'India region', lat: 28.6139, lng: 77.2090 },
     }
-    selectCity(targetCity)
+    const anchor = targetCity || countryCity || regionAnchors[country.toLowerCase()]
+    const target = lead.targetCoords && Number.isFinite(lead.targetCoords.lat) && Number.isFinite(lead.targetCoords.lng)
+      ? { name: lead.primaryCity || lead.country || 'Research region', ...lead.targetCoords }
+      : anchor
+
+    if (!target) return
+
+    const targetCityForDossier = {
+      ...target,
+      country: lead.country || target.country || 'Research region',
+      iso2: target.iso2 || '',
+      adhoc: !targetCity,
+      population: target.population ?? null,
+      safetyScore: target.safetyScore ?? null,
+      homicideRate: target.homicideRate ?? null,
+      tier: target.tier,
+      grade: target.grade,
+      briefing: lead.summary || `Country-level research lead for ${lead.country || target.name}. No person location is established by this dossier.`,
+    }
+    selectCity(targetCityForDossier)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [selectCity])
 
@@ -269,16 +290,14 @@ export default function App() {
 
           <div className="hero-overlay">
             <div className="hero-title-block">
-              <div className="kicker" style={{ color: 'var(--red)' }}>
-                ☠ PLANETARY FUGITIVE MANHUNT & RECON MATRIX // HUNT PROTOCOL ACTIVE
+              <div className="kicker">
+                PUBLIC SAFETY RESEARCH / OPEN-SOURCE INTELLIGENCE
               </div>
               <h1 className="hero-title">
-                BOUNTY<span className="glow" style={{ color: 'var(--red)', textShadow: '0 0 25px rgba(255,47,95,0.7)' }}>GRID</span>
+                BOUNTY<span className="glow">GRID</span>
               </h1>
               <p className="hero-sub">
-                Autonomous fugitive tracking and crime interdiction matrix. Fuses <b>$13.5M+ official FBI Bounties</b>, 
-                <b>real-time police radio scanners with AI 10-Code decoders</b>, <b>Shodan IoT infrastructure reconnaissance</b>, and 
-                <b>planetary threat telemetry</b>.
+                A research workspace for reviewing public wanted notices, court records, open news, and civic data. Every source is labelled by origin and confidence; no search result is treated as a finding without corroboration.
               </p>
 
               <SearchBar
@@ -291,19 +310,19 @@ export default function App() {
               <div className="hero-stats">
                 <div className="stat">
                   <div className="num"><CountUp value={CITIES.length} /></div>
-                  <div className="label">Metros in Matrix</div>
+                  <div className="label">Cities in index</div>
                 </div>
                 <div className="stat">
                   <div className="num"><CountUp value={liveSignals} /></div>
-                  <div className="label">Live Signal Telemetry</div>
+                  <div className="label">Current signals</div>
                 </div>
                 <div className="stat">
                   <div className="num" style={{ color: 'var(--amber)' }}>$13.5M+</div>
-                  <div className="label">Active Bounty Board</div>
+                  <div className="label">Official reward notices</div>
                 </div>
                 <div className="stat">
                   <div className="num"><CountUp value={court.count} /></div>
-                  <div className="label">Case Files Indexed</div>
+                  <div className="label">Court records matched</div>
                 </div>
               </div>
             </div>
@@ -330,20 +349,20 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        {/* SECTION 01: INTERACTIVE TACTICAL SOLVER CLI TERMINAL */}
+        {/* SECTION 01: RESEARCH QUERY TERMINAL */}
         <Section
           index="01"
-          title="Tactical Crime Solver AI Terminal & Command Line Interface"
-          sub="Direct OSINT query terminal: execute 'hunt <name>', 'shodan <city>', 'trace <wallet>', 'dork <target>', and 'docket <query>' to synthesize live investigative intelligence"
+          title="Research Query Terminal"
+          sub="Run supported public-record queries from one place, with results routed to the relevant source module for review"
         >
           <SolverTerminal onCourtSearch={courtFromCity} onSelectCity={selectCity} />
         </Section>
 
-        {/* SECTION 02: ACTIVE OSINT LEADS & BOUNTY RECON */}
+        {/* SECTION 02: OPEN-SOURCE LEAD REVIEW */}
         <Section
           index="02"
-          title="Active OSINT Leads & Syndicate Tracer"
-          sub="Cross-correlated investigative leads fusing FBI bounties, federal court indictments, cartel corridors, and ransomware laundering pipelines"
+          title="Open-Source Lead Review"
+          sub="Review research leads against their cited sources, separate observations from assumptions, and open the underlying record before acting"
         >
           <LeadsTracer
             onTraceLead={handleTraceLead}
@@ -351,93 +370,101 @@ export default function App() {
           />
         </Section>
 
-        {/* SECTION 03: FBI MOST WANTED & BOUNTY BOARD */}
+        {/* SECTION 03: FBI MOST WANTED NOTICES */}
         <Section
           index="03"
-          title="FBI Most Wanted & Bounty Board ($13.5M+ Active Rewards)"
-          sub="Official fugitive board with local high-resolution poster images, physical identifiers (NCIC, DOB, hair, eyes), rewards up to $1M+, and 1-click docket searches"
+          title="FBI Most Wanted Notices"
+          sub="Official public notices with poster images, identifying details, reward language, and links back to the FBI record"
         >
           <MostWanted wanted={wanted} onCaseFiles={courtFromCity} />
         </Section>
 
-        {/* SECTION 04: ON-CHAIN FORENSICS & PEELING CHAIN TRACER */}
+        {/* SECTION 04: CRYPTOCURRENCY TRANSACTION REVIEW */}
         <Section
           index="04"
-          title="On-Chain Forensics & Peeling Chain Transaction Tracer"
-          sub="Trace transaction hops across ChipMixer, Tornado.cash, and Eastern European/Dubai P2P OTC desks with live unhosted wallet address risk scanner"
+          title="Cryptocurrency Transaction Review"
+          sub="Inspect publicly available transaction histories and record the limits of address attribution; wallet activity does not identify a person by itself"
         >
           <CryptoTracker onCourtSearch={courtFromCity} />
         </Section>
 
-        {/* SECTION 05: SHODAN IOT & SURVEILLANCE CAMERA RECON */}
+        {/* SECTION 05: PUBLIC NETWORK REFERENCE */}
         <Section
           index="05"
-          title="Shodan & IoT Surveillance Infrastructure Intelligence"
-          sub="Query municipal traffic cameras, open RTSP video streams, industrial SCADA controllers, and bulletproof darknet proxy infrastructure across global metros"
+          title="Public Network Reference"
+          sub="Review public device-search examples and exposure indicators for research and defensive awareness; do not access or monitor systems without authorization"
         >
           <ShodanRecon selectedCity={selected} />
         </Section>
 
-        {/* SECTION 06: OSINT RECON WORKBENCH */}
+        {/* SECTION 06: PUBLIC-SOURCE SEARCH WORKBENCH */}
         <Section
           index="06"
-          title="OSINT Recon Workbench & Search Syntax Generator"
-          sub="Construct targeted public search dorks across federal dockets, offshore corporate registries, username footprints, and blockchain explorers"
+          title="Public-Source Search Workbench"
+          sub="Generate repeatable search queries for public records, news, corporate registries, usernames, and blockchain explorers"
         >
-          <OsintWorkbench onCourtSearch={courtFromCity} />
+          <OsintWorkbench wanted={wanted} onCourtSearch={courtFromCity} />
         </Section>
 
-        {/* SECTION 07: DIGITAL EVIDENCE VAULT */}
+        {/* SECTION 07: RESEARCH RECORD & HASHING */}
         <Section
           index="07"
-          title="Digital Evidence Vault & Chain of Custody Manager"
-          sub="Log investigative artifacts, calculate cryptographic SHA-256 checksums, and compile official FBI FD-302 Law Enforcement Intelligence Dossiers"
+          title="Research Record & Hashing"
+          sub="Save locally entered research artifacts, calculate reproducible SHA-256 checksums, and export a clearly labelled worksheet"
         >
           <EvidenceLocker />
         </Section>
 
-        {/* SECTION 08: TARGET RECON DESK — real queries against real sources */}
+        {/* SECTION 08: TARGET RESEARCH DESK */}
         <Section
           index="08"
-          title="Target Recon Desk"
-          sub="Pick any live FBI target: auto-sweep federal dockets and the news mesh, build search pivots from official aliases, pull Internet Archive captures, trace real Bitcoin ledgers, check INTERPOL Red Notices, and route a tip that actually pays"
+          title="Target Research Desk"
+          sub="Select an official FBI notice to review associated public records, news, archive captures, and agency submission links"
         >
           <ReconDesk wanted={wanted} onCaseFiles={courtFromCity} />
         </Section>
 
-        {/* SECTION 09: BOUNTY HUNTER PAYOUT TERMINAL */}
         <Section
-          index="09"
-          title="Bounty Hunter Payout Terminal & Anonymous Tip Filing Desk"
-          sub="Calculate net bounty disbursements across recovery tiers, compute federal withholding estimates, and submit encrypted leads directly under Title 18 U.S.C. § 3059"
+          index="08A"
+          title="Public Social Recon"
+          sub="Launch public-source searches from official aliases, record source URLs, and keep every lead explicitly unverified until corroborated"
         >
-          <BountyDesk onSelectTarget={t => selectCity(t)} />
+          <SocialRecon wanted={wanted} />
         </Section>
 
-        {/* SECTION 10: TACTICAL POLICE RADIO SCANNER */}
+        {/* SECTION 09: REWARD NOTICE & TIP PREPARATION */}
+        <Section
+          index="09"
+          title="Reward Notice & Tip Preparation"
+          sub="Review reward language, prepare a local draft, and use the receiving agency's official site for any actual submission"
+        >
+          <BountyDesk wanted={wanted} />
+        </Section>
+
+        {/* SECTION 10: PUBLIC-SAFETY AUDIO REFERENCE */}
         <Section
           index="10"
-          title="Live Tactical Police Radio Scanner & AI 10-Code Decoder"
-          sub="Broadcast intercepts across Chicago CPD, NYPD Citywide, LAPD Metro, and federal interdiction frequencies with frequency spectrum visualizer, AI 10-code decoders, and real-time dispatch stream"
+          title="Public-Safety Audio Reference"
+          sub="Review the interface's audio and code-reference tools; availability and legality of radio streams vary by jurisdiction"
         >
           <PoliceScanner onPlotIncident={handlePlotDispatch} />
         </Section>
 
-        {/* SECTION 11: SATELLITE RECONNAISSANCE */}
+        {/* SECTION 11: SATELLITE IMAGE REFERENCE */}
         <Section
           index="11"
-          title="Tactical Satellite Reconnaissance & Thermal Drone HUD"
-          sub="Deploy high-resolution satellite imagery with simulated FLIR thermal and NVG night-vision filters, coordinate crosshairs, and altitude telemetry"
+          title="Satellite Image Reference"
+          sub="Review available imagery around a selected city with clear separation between imagery, map context, and interpretation"
         >
           <SatelliteRecon selectedCity={selected} />
         </Section>
 
-        {/* SECTION 12: CITY VS CITY DUEL RADAR */}
+        {/* SECTION 12: CITY COMPARISON */}
         <div ref={compareRef}>
           <Section
             index="12"
-            title="City Threat Radar Duel"
-            sub="Multi-axial comparative radar comparing any two global metros across 6 security vectors with automated AI threat synthesis"
+            title="City Comparison"
+            sub="Compare two global metros across six published indicators and inspect the assumptions behind the composite view"
           >
             <CityComparison
               cities={CITIES}
@@ -448,22 +475,22 @@ export default function App() {
           </Section>
         </div>
 
-        {/* SECTION 13: NATIONAL THREAT CURVE */}
+        {/* SECTION 13: FBI CRIME TRENDS */}
         <Section
           index="13"
-          title="FBI Crime Data Explorer (CDE) Trend Studio"
-          sub="Historical US crime trajectory 1985–2024 per 100,000 residents · FBI UCR/NIBRS published estimates · toggle metrics to inspect violent, property, and homicide shifts"
+          title="FBI Crime Trends"
+          sub="Historical U.S. crime estimates, 1985–2024, presented per 100,000 residents from FBI UCR/NIBRS published data"
         >
           <div className="panel">
             <TrendChart trend={trend} />
           </div>
         </Section>
 
-        {/* SECTION 14: LIVE WIRE */}
+        {/* SECTION 14: NEWS & INCIDENT FEEDS */}
         <Section
           index="14"
-          title="Live Signal Wire & Open-Data Incident Mesh"
-          sub="Realtime-ish global intercepts: GDELT 2.0 international news mesh (auto-translated to English) + Chicago, NYC, Los Angeles municipal open-data incident streams"
+          title="News & Incident Feeds"
+          sub="Open news and municipal incident feeds with source timestamps, translation status, and cache indicators"
         >
           <div className="wire-grid">
             <NewsFeed news={news} status={status.news} />
@@ -475,22 +502,22 @@ export default function App() {
           </div>
         </Section>
 
-        {/* SECTION 15: COURT RECORDS */}
+        {/* SECTION 15: FEDERAL COURT RECORDS */}
         <div ref={courtsRef}>
           <Section
             index="15"
-            title="Federal Court Records & Legal Docket Archive"
-            sub="Investigate real judicial case files, appellate rulings, and federal indictments across 10M+ opinions from the CourtListener / RECAP archive"
+            title="Federal Court Records"
+            sub="Search opinions and docket-linked records from the CourtListener / RECAP public archive"
           >
             <CourtRecords court={court} onSearch={runCourtSearch} />
           </Section>
         </div>
 
-        {/* SECTION 16: RANKINGS */}
+        {/* SECTION 16: CITY SAFETY INDEX */}
         <Section
           index="16"
-          title="Global Planetary Safety Matrix Rankings"
-          sub="Composite safety index (higher = safer) vs homicide rate per 100,000 · filter by global region or click any row to load its complete dossier"
+          title="City Safety Index"
+          sub="Compare the composite index with homicide rate per 100,000, filter by region, and open the underlying city dossier"
         >
           <Rankings
             cities={CITIES}
@@ -503,7 +530,7 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        <b>BOUNTYGRID // MANHUNT.MATRIX — CIVIC HONESTY & FUGITIVE RECON PROTOCOL</b>
+        <b>BOUNTYGRID // PUBLIC SAFETY RESEARCH WORKSPACE</b>
         <div className="src-list">
           <span>◈ FBI Crime Data Explorer / UCR–NIBRS Official Estimates</span>
           <span>◈ FBI Most Wanted Public API (api.fbi.gov)</span>

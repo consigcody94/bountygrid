@@ -19,7 +19,7 @@ const TABS = [
   { id: 'archive', label: '🕰 ARCHIVE RECON' },
   { id: 'chain', label: '⛓ CHAIN TRACE' },
   { id: 'interpol', label: '🌐 RED NOTICES' },
-  { id: 'payout', label: '💵 TIP & PAYOUT' },
+  { id: 'payout', label: 'TIP & REWARD' },
 ]
 
 function AutoIntel({ target }) {
@@ -254,7 +254,7 @@ export default function ReconDesk({ wanted, onCaseFiles }) {
                   </div>
                   <div className="pivot-links">
                     {nativeQueries(target, desk).map((q, i) => (
-                      <a key={i} className="pivot-link" href={q.url} target="_blank" rel="noreferrer" onClick={playBeep}>
+                      <a key={i} className="pivot-link" href={q.url} target="_blank" rel="noreferrer" onClick={() => playBeep()}>
                         <b>{q.label}</b><code>{q.q}</code>
                       </a>
                     ))}
@@ -278,7 +278,7 @@ export default function ReconDesk({ wanted, onCaseFiles }) {
                   <div className="pivot-why">{g.why}</div>
                   <div className="pivot-links">
                     {g.queries.map(q => (
-                      <a key={q.label} className="pivot-link" href={q.url} target="_blank" rel="noreferrer" onClick={playBeep}>
+                      <a key={q.label} className="pivot-link" href={q.url} target="_blank" rel="noreferrer" onClick={() => playBeep()}>
                         <b>{q.label}</b><code>{q.q}</code>
                       </a>
                     ))}

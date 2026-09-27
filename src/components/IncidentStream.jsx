@@ -20,7 +20,7 @@ export default function IncidentStream({ incidents, status, lastSync }) {
           className="live-dot"
           style={status !== 'online' ? { background: '#ff2f5f', boxShadow: '0 0 8px #ff2f5f' } : undefined}
         />
-        MUNICIPAL OPEN-DATA INCIDENT WIRE
+        Municipal incident feed
         <span className="meta">
           {status === 'online'
             ? `${incidents.liveFeeds || 3}/3 ACTIVE CITY PORTALS · LAST SYNC ${lastSync ? lastSync.toLocaleTimeString([], { hour12: false }) : '—'}`

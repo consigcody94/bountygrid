@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { scoreColor } from './ui.jsx'
-import { playBeep, playLock } from '../utils/audio.js'
+import { playLock } from '../utils/audio.js'
 
 export default function SearchBar({ cities, onSelect, onGeocode, busy }) {
   const [q, setQ] = useState('')
@@ -43,11 +43,10 @@ export default function SearchBar({ cities, onSelect, onGeocode, busy }) {
         <input
           ref={inputRef}
           value={q}
-          placeholder="QUERY ANY CITY, BOROUGH, OR COORDINATES ON EARTH…"
+          placeholder="Search a city, country, or coordinates"
           onChange={e => {
             setQ(e.target.value)
             setOpen(true)
-            playBeep(1200, 0.02)
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={e => {
@@ -56,7 +55,7 @@ export default function SearchBar({ cities, onSelect, onGeocode, busy }) {
           }}
         />
         <button className="btn" onClick={submit} disabled={busy}>
-          {busy ? 'SCANNING…' : 'SCAN MATRIX'}
+          {busy ? 'Searching…' : 'Search'}
         </button>
       </div>
 
@@ -85,8 +84,8 @@ export default function SearchBar({ cities, onSelect, onGeocode, busy }) {
             ))}
             <div className="hint">
               {matches.length
-                ? '↵ PRESS ENTER TO LOCK TARGET DOSSIER'
-                : 'NO EXACT MATCH IN CORE MATRIX — ↵ ENTER TO GEOLOCATE VIA SATELLITE MESH'}
+                ? 'Press Enter to open the city record'
+                : 'No indexed match — press Enter to search coordinates'}
             </div>
           </motion.div>
         )}

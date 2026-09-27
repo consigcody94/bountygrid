@@ -52,8 +52,8 @@ export default function PoliceScanner({ onPlotDispatch }) {
   return (
     <div className="panel">
       <div className="panel-title">
-        📻 SCANNER DESK & 10-CODE DECODER
-        <span className="meta">REAL FEEDS + REAL LEXICON · NO SIMULATED TRAFFIC</span>
+        Public-safety audio reference
+        <span className="meta">Public feeds + code reference</span>
       </div>
 
       <div className="recon-sub">
@@ -62,7 +62,7 @@ export default function PoliceScanner({ onPlotDispatch }) {
         pipeline this console does not have — so it is not pretended.
       </div>
 
-      <div className="recon-block-title">LIVE PUBLIC SCANNER STREAMS</div>
+      <div className="recon-block-title">Public scanner streams</div>
       <div className="tip-grid">
         {LIVE_FEEDS.map(f => (
           <div key={f.url} className="tip-card" style={{ borderColor: 'rgba(0,240,255,0.2)' }}>
@@ -70,7 +70,7 @@ export default function PoliceScanner({ onPlotDispatch }) {
             <div className="tip-when">{f.agency}</div>
             <div className="tip-note">{f.provider}</div>
             <div className="tip-actions">
-              <a className="btn sm" href={f.url} target="_blank" rel="noreferrer" onClick={playBeep}>OPEN STREAM ↗</a>
+              <a className="btn sm" href={f.url} target="_blank" rel="noreferrer" onClick={() => playBeep()}>Open stream ↗</a>
             </div>
           </div>
         ))}

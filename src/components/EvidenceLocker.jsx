@@ -4,31 +4,14 @@ import { playBeep, playLock, playRadar } from '../utils/audio.js'
 
 export const INITIAL_CASES = [
   {
-    id: 'case-01',
-    caseNumber: 'BG-2026-00482-SDNY',
-    title: 'OPERATION ZEUS CITADEL // BOGACHEV FUGITIVE APPREHENSION',
-    target: 'Evgeniy Mikhailovich Bogachev',
-    bounty: '$3,000,000 USD',
-    leadInvestigator: 'OPERATIVE #849 (CODY)',
-    status: 'ACTIVE MANHUNT',
-    items: [
-      { id: 'ev-1', type: 'WALLET HASH', title: 'Peeling Chain Inflow Node (1ZeusRansom...9482)', date: '2026-08-14', sha256: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08', notes: 'Correlated with SDNY Seizure Master Docket 1:20-mc-00043.' },
-      { id: 'ev-2', type: 'SURVEILLANCE', title: 'Black Sea Maritime Telemetry (Yacht Bandit #992)', date: '2026-08-12', sha256: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', notes: 'Automated AIS transponder match near Crimean maritime corridor.' },
-      { id: 'ev-3', type: 'COURT DOCKET', title: 'Indictment 1:14-cr-00127-WEC (Conspiracy / CFAA)', date: '2026-08-10', sha256: '4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a', notes: 'Charges filed in Western District of Pennsylvania.' },
-    ]
-  },
-  {
-    id: 'case-02',
-    caseNumber: 'BG-2026-00914-ONECOIN',
-    title: 'PROJECT ONECOIN DISPERSAL // RUJA IGNATOVA RECON',
-    target: 'Ruja Ignatova',
-    bounty: '$5,000,000 USD',
-    leadInvestigator: 'OPERATIVE #849 (CODY)',
-    status: 'ACTIVE TRACE',
-    items: [
-      { id: 'ev-4', type: 'CORPORATE FILING', title: 'Abb風 Holdings Nominee Shareholder Declaration', date: '2026-08-11', sha256: '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae', notes: 'Kensington luxury residence conveyance documents.' },
-      { id: 'ev-5', type: 'BIOMETRIC MATCH', title: 'Athens Transit Hub CCTV Video Frame #448', date: '2026-08-08', sha256: 'fc2921d9057ac44e549cc2040c414f7e8636797e494c9ad072a0fb33ed6743f1', notes: 'Biometric landmark matching score: 94.2% congruence.' },
-    ]
+    id: 'case-local',
+    caseNumber: 'LOCAL-DRAFT-001',
+    title: 'LOCAL EVIDENCE WORKSPACE',
+    target: 'UNASSIGNED SUBJECT',
+    bounty: 'NOT SET',
+    leadInvestigator: 'LOCAL OPERATOR',
+    status: 'DRAFT',
+    items: []
   }
 ]
 
@@ -88,8 +71,8 @@ export default function EvidenceLocker() {
     playRadar()
     const reportText = `
 ========================================================================================
-◈ UNITED STATES DEPARTMENT OF JUSTICE // LAW ENFORCEMENT INTELLIGENCE REPORT (FD-302)
-◈ CLASSIFICATION: LAW ENFORCEMENT SENSITIVE // OSINT RECON MATRIX
+◈ BOUNTY.GRID // LOCAL OSINT EVIDENCE WORKSHEET
+◈ NOT AN OFFICIAL GOVERNMENT FORM OR LAW-ENFORCEMENT RECORD
 ========================================================================================
 CASE NUMBER:    ${activeCase.caseNumber}
 OPERATION:      ${activeCase.title}
@@ -111,10 +94,9 @@ NOTES:       ${it.notes}
 `).join('\n')}
 
 ----------------------------------------------------------------------------------------
-AUTHENTICATION & INTEGRITY STATEMENT:
-All digital artifacts, wallet addresses, and surveillance stills cataloged above have
-been indexed with cryptographic SHA-256 checksums in compliance with federal digital
-evidence chain-of-custody standards (Title 18 U.S.C. § 3059 / FRE Rule 901).
+AUTHENTICATION & INTEGRITY NOTE:
+SHA-256 values above are hashes of the locally entered record text. They do not prove
+source authenticity, custody, identity, or compliance with any government standard.
 ========================================================================================
 `
     setExportedReport(reportText)
@@ -125,7 +107,7 @@ evidence chain-of-custody standards (Title 18 U.S.C. § 3059 / FRE Rule 901).
       <div className="panel-title" style={{ color: 'var(--mint)' }}>
         📁 DIGITAL EVIDENCE VAULT & CHAIN OF CUSTODY MANAGER
         <span className="meta">
-          FD-302 DOSSIER COMPILATION · SHA-256 INTEGRITY HASHING · MULTI-ITEM CASE VAULT
+          LOCAL WORKSHEET · SHA-256 INTEGRITY HASHING · MULTI-ITEM CASE VAULT
         </span>
       </div>
 
@@ -179,7 +161,7 @@ evidence chain-of-custody standards (Title 18 U.S.C. § 3059 / FRE Rule 901).
             </div>
 
             <button className="btn" onClick={handleExportReport}>
-              📄 EXPORT FBI FD-302 DOSSIER ↗
+              📄 EXPORT LOCAL WORKSHEET ↗
             </button>
           </div>
 
@@ -293,8 +275,8 @@ evidence chain-of-custody standards (Title 18 U.S.C. § 3059 / FRE Rule 901).
             >
               <div className="modal-header">
                 <div className="modal-title">
-                  <span className="modal-badge">OFFICIAL DOSSIER</span>
-                  <h3>FBI FD-302 INTELLIGENCE REPORT</h3>
+                  <span className="modal-badge">LOCAL WORKSHEET</span>
+                  <h3>OSINT EVIDENCE WORKSHEET</h3>
                 </div>
                 <button className="modal-close" onClick={() => setExportedReport(null)}>✕</button>
               </div>
@@ -306,7 +288,7 @@ evidence chain-of-custody standards (Title 18 U.S.C. § 3059 / FRE Rule 901).
                   className="btn primary"
                   onClick={() => {
                     navigator.clipboard?.writeText(exportedReport)
-                    alert('Official FD-302 Case Dossier copied to clipboard!')
+                    alert('Local OSINT worksheet copied to clipboard.')
                   }}
                 >
                   📋 COPY DOSSIER TO CLIPBOARD

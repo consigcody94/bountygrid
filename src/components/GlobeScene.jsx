@@ -92,11 +92,11 @@ export default function GlobeScene({ cities, incidents, selected, onSelect }) {
     if (!showRings) return []
     const r = []
     if (selected) {
-      r.push({ lat: selected.lat, lng: selected.lng, maxR: 6, speed: 5, repeat: 800, color: '#00f0ff' })
+      r.push({ lat: selected.lat, lng: selected.lng, maxR: 6, speed: 5, repeat: 800, color: '#8eafb9' })
     }
     for (const inc of (incidents || []).slice(0, 16)) {
       if (Number.isFinite(inc.lat) && Number.isFinite(inc.lng)) {
-        r.push({ lat: inc.lat, lng: inc.lng, maxR: 2.2, speed: 2.5, repeat: 1600, color: '#ff2f5f' })
+      r.push({ lat: inc.lat, lng: inc.lng, maxR: 2.2, speed: 2.5, repeat: 1600, color: '#b87976' })
       }
     }
     return r
@@ -159,8 +159,8 @@ export default function GlobeScene({ cities, incidents, selected, onSelect }) {
         onGlobeReady={() => setReady(true)}
         globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
         backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
-        backgroundColor="rgba(2,4,10,1)"
-        atmosphereColor="#00c8ff"
+        backgroundColor="rgba(15,23,30,1)"
+        atmosphereColor="#8eafb9"
         atmosphereAltitude={0.22}
         pointsData={points}
         pointLat="lat"
@@ -170,19 +170,19 @@ export default function GlobeScene({ cities, incidents, selected, onSelect }) {
         pointRadius={d => 0.28 + Math.min(0.4, (d.population || 1e6) / 5.0e7)}
         pointResolution={14}
         pointLabel={d => `
-          <div style="font-family:'Share Tech Mono',monospace;background:rgba(3,10,24,0.96);border:1px solid rgba(0,240,255,0.45);padding:10px 14px;color:#d7e6f5;font-size:12px;box-shadow:0 0 16px rgba(0,240,255,0.25);">
-            <div style="color:#00f0ff;letter-spacing:0.12em;font-size:14px;font-weight:bold;">${d.name.toUpperCase()}</div>
-            <div style="color:#8fa6c0;margin-bottom:4px;">${d.country || ''} · ${d.iso2 || ''}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;background:rgba(24,37,47,0.96);border:1px solid rgba(168,195,206,0.35);padding:10px 14px;color:#edf2f3;font-size:12px;">
+            <div style="color:#c5a36a;letter-spacing:0.08em;font-size:14px;font-weight:bold;">${d.name.toUpperCase()}</div>
+            <div style="color:#aab8bf;margin-bottom:4px;">${d.country || ''} · ${d.iso2 || ''}</div>
             <div style="margin-bottom:4px;">SAFETY INDEX: <b style="color:${scoreColor(d.safetyScore)}">${d.safetyScore ?? 'UNRATED'} / 100</b></div>
-            <div style="color:#e8558f;">HOMICIDES: <b>${d.homicideRate != null ? d.homicideRate.toFixed(1) + '/100k' : '—'}</b></div>
-            <div style="color:#55688a;font-size:10px;margin-top:6px;">▸ CLICK TO OPEN TACTICAL DOSSIER</div>
+            <div style="color:#b87976;">HOMICIDES: <b>${d.homicideRate != null ? d.homicideRate.toFixed(1) + '/100k' : '—'}</b></div>
+            <div style="color:#74858e;font-size:10px;margin-top:6px;">Select to open city record</div>
           </div>`}
         onPointClick={d => {
           playLock()
           if (onSelect) onSelect(d)
         }}
         ringsData={rings}
-        ringColor={d => t => `rgba(${d.color === '#ff2f5f' ? '255,47,95' : '0,240,255'},${Math.max(0, 1 - t)})`}
+        ringColor={d => t => `rgba(${d.color === '#b87976' ? '184,121,118' : '142,175,185'},${Math.max(0, 1 - t)})`}
         ringMaxRadius="maxR"
         ringPropagationSpeed="speed"
         ringRepeatPeriod="repeat"

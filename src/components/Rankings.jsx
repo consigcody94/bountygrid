@@ -57,11 +57,11 @@ export default function Rankings({ cities, onSelect }) {
   return (
     <div className="rankings-wrapper">
       <div className="rankings-region-bar">
-        <span className="filter-title">MATRIX SECTOR FILTER:</span>
+        <span className="filter-title">REGION FILTER:</span>
         {[
-          { id: 'ALL', label: 'ALL GLOBAL METROS' },
+          { id: 'ALL', label: 'ALL CITIES' },
           { id: 'Americas', label: 'AMERICAS' },
-          { id: 'EMEA', label: 'EMEA (EUROPE / ME / AFRICA)' },
+          { id: 'EMEA', label: 'EMEA' },
           { id: 'APAC', label: 'ASIA-PACIFIC' },
         ].map(r => (
           <button
@@ -79,18 +79,18 @@ export default function Rankings({ cities, onSelect }) {
 
       <div className="rank-grid">
         <RankPanel
-          title="◈ SAFEST TRACKED METROPOLISES (OVERALL SAFETY INDEX /100)"
+          title="Safest cities (overall index /100)"
           rows={safest}
-          color="#00f0ff"
+          color="#8eafb9"
           valueOf={c => c.safetyScore}
           formatVal={c => `${c.safetyScore}/100`}
           onSelect={onSelect}
         />
 
         <RankPanel
-          title="◈ HIGHEST HOMICIDE RATES (ANNUAL HOMICIDES / 100K RESIDENTS)"
+          title="Highest homicide rates (annual /100k)"
           rows={riskiest}
-          color="#ff2f5f"
+          color="#b87976"
           valueOf={c => Math.round(c.homicideRate ?? 0)}
           formatVal={c => `${c.homicideRate?.toFixed(1) ?? '—'}/100k`}
           onSelect={onSelect}

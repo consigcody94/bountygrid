@@ -12,7 +12,7 @@ import { playBeep, playLock } from '../utils/audio.js'
    the terminal says so rather than inventing output. */
 
 const BANNER = [
-  { t: 'sys', v: 'BOUNTY.GRID TACTICAL TERMINAL — every command hits a live source.' },
+  { t: 'sys', v: 'BOUNTY.GRID RESEARCH TERMINAL — commands return source-linked results.' },
   { t: 'dim', v: 'Type `help` for commands. Results are raw source output, not summaries.' },
 ]
 
@@ -266,8 +266,8 @@ export default function SolverTerminal() {
   return (
     <div className="panel term-panel">
       <div className="panel-title">
-        ▮ TACTICAL TERMINAL
-        <span className="meta">EVERY COMMAND HITS A LIVE SOURCE</span>
+        Research terminal
+        <span className="meta">Source-linked results</span>
       </div>
 
       <div className="term-body" onClick={() => inputRef.current?.focus()}>

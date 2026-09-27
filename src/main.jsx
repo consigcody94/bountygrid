@@ -5,6 +5,7 @@ import './styles/global.css'
 import './styles/recon.css'
 import './styles/brand.css'
 import './styles/modules.css'
+import './styles/institutional.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

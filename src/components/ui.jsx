@@ -2,11 +2,11 @@ import React, { useEffect, useRef } from 'react'
 import { motion } from 'motion/react'
 
 export const TIER_COLORS = {
-  'very-safe': '#3fffb0',
-  safe: '#12a0c0',
-  moderate: '#ffc857',
-  elevated: '#ff7a3d',
-  'high-risk': '#ff2f5f',
+  'very-safe': '#83ad98',
+  safe: '#77a7b8',
+  moderate: '#c5a36a',
+  elevated: '#b58461',
+  'high-risk': '#bd7772',
 }
 
 export function scoreTier(score) {
@@ -20,7 +20,7 @@ export function scoreTier(score) {
 
 export function scoreColor(score) {
   const tier = scoreTier(score)
-  return tier ? TIER_COLORS[tier] : '#8fa6c0'
+  return tier ? TIER_COLORS[tier] : '#74858e'
 }
 
 export function Section({ index, title, sub, id, children }) {

@@ -1,20 +1,36 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { playBeep, playLock, playRadar } from '../utils/audio.js'
 import { FALLBACK_WANTED } from '../data/fallback.js'
 
-export default function BountyDesk({ onSelectTarget }) {
-  const [selectedTargetId, setSelectedTargetId] = useState(FALLBACK_WANTED[0].uid)
+export default function BountyDesk({ wanted }) {
+  const targets = wanted?.items?.length ? wanted.items : FALLBACK_WANTED
+  const [selectedTargetId, setSelectedTargetId] = useState(targets[0]?.uid || '')
   const [tipTier, setTipTier] = useState('full') // 'full', 'location', 'asset'
   const [showTipModal, setShowTipModal] = useState(false)
   const [submittedLead, setSubmittedLead] = useState(null)
+  const [location, setLocation] = useState('')
+  const [observedAt, setObservedAt] = useState('')
+  const [details, setDetails] = useState('')
+  const [contact, setContact] = useState('')
 
-  const target = FALLBACK_WANTED.find(w => w.uid === selectedTargetId) || FALLBACK_WANTED[0]
+  useEffect(() => {
+    if (!targets.some(item => item.uid === selectedTargetId)) {
+      setSelectedTargetId(targets[0]?.uid || '')
+    }
+  }, [targets, selectedTargetId])
+
+  const target = targets.find(w => w.uid === selectedTargetId) || targets[0] || FALLBACK_WANTED[0]
 
   // Parse reward amount from text
   const rawReward = target.reward || '$100,000'
-  const rewardMatch = rawReward.match(/\$([0-9,]+)/)
-  const baseRewardNumber = rewardMatch ? parseInt(rewardMatch[1].replace(/,/g, ''), 10) : 100000
+  const rewardMatch = rawReward.match(/\$([\d,.]+)\s*(k|m|b|thousand|million|billion)?/i)
+  const parsedReward = rewardMatch
+    ? parseFloat(rewardMatch[1].replace(/,/g, '')) * ({ k: 1e3, m: 1e6, b: 1e9, thousand: 1e3, million: 1e6, billion: 1e9 }[String(rewardMatch[2] || '').toLowerCase()] || 1)
+    : 0
+  const baseRewardNumber = Number.isFinite(target.rewardAmount) && target.rewardAmount > 0
+    ? target.rewardAmount
+    : parsedReward || 100000
 
   // Calculate payout percentages
   const multiplier = tipTier === 'full' ? 1.0 : tipTier === 'location' ? 0.6 : 0.25
@@ -34,6 +50,10 @@ export default function BountyDesk({ onSelectTarget }) {
       target: target.name,
       docket: target.ncic || 'NCIC-WARRANT-ACTIVE',
       timestamp: new Date().toISOString(),
+      location: location.trim(),
+      observedAt,
+      details: details.trim(),
+      contact: contact.trim(),
       // Deliberately no generated tracking code. Only the receiving agency can
       // issue a tip reference — minting one here would imply a filing that has
       // not happened and give a false sense of an established claim.
@@ -44,16 +64,16 @@ export default function BountyDesk({ onSelectTarget }) {
   return (
     <div className="panel bounty-panel">
       <div className="panel-title" style={{ color: 'var(--amber)' }}>
-        💰 BOUNTY HUNTER PAYOUT TERMINAL & ANONYMOUS TIP FILING DESK
+        Reward notice & tip preparation
         <span className="meta">
-          FEDERAL REWARD PROGRAM COMPLIANCE · TITLE 18 U.S.C. § 3059 · ACTIVE CLAIMS DESK
+          {wanted?.source === 'live' ? 'LIVE FBI BOARD' : 'CACHED SAMPLE'} · LOCAL PAYOUT ESTIMATE ONLY
         </span>
       </div>
 
       <div className="bounty-grid-layout">
         {/* Left Column: Target Selector & Calculation */}
         <div className="bounty-calc-col">
-          <div className="bounty-label">SELECT BOUNTY TARGET FOR PAYOUT RECON:</div>
+          <div className="bounty-label">SELECT AN OFFICIAL TARGET:</div>
           <select
             className="bounty-select"
             value={selectedTargetId}
@@ -62,7 +82,7 @@ export default function BountyDesk({ onSelectTarget }) {
               setSelectedTargetId(e.target.value)
             }}
           >
-            {FALLBACK_WANTED.map(w => (
+            {targets.map(w => (
               <option key={w.uid} value={w.uid}>
                 {w.name} — [{w.reward || 'REWARD ACTIVE'}]
               </option>
@@ -221,36 +241,48 @@ export default function BountyDesk({ onSelectTarget }) {
                         placeholder="e.g. Dubai Marina, London Heathrow, Chicago Loop"
                         required
                         className="form-input"
+                        value={location}
+                        onChange={e => setLocation(e.target.value)}
                       />
                     </div>
                     <div className="form-field">
                       <label>DATE & TIME OBSERVED</label>
-                      <input type="datetime-local" className="form-input" required />
+                      <input
+                        type="datetime-local"
+                        className="form-input"
+                        required
+                        value={observedAt}
+                        onChange={e => setObservedAt(e.target.value)}
+                      />
                     </div>
                   </div>
 
                   <div className="form-field">
-                    <label>ACTIONABLE INTELLIGENCE / WALLET HASH / SURVEILLANCE DETAILS</label>
+                    <label>OBSERVATION OR SUPPORTING DETAIL</label>
                     <textarea
                       rows="4"
                       placeholder="Provide specific, verifiable intelligence: vehicle license plate, associates, crypto transaction hash, vessel name, or physical address..."
                       required
                       className="form-input"
+                      value={details}
+                      onChange={e => setDetails(e.target.value)}
                     />
                   </div>
 
                   <div className="form-field">
-                    <label>ANONYMOUS CLAIMANT ESCROW / ENCRYPTED PGP EMAIL (OPTIONAL)</label>
+                    <label>CONTACT DETAILS (OPTIONAL)</label>
                     <input
                       type="text"
                       placeholder="legal-counsel@protonmail.com or PGP fingerprint"
                       className="form-input"
+                      value={contact}
+                      onChange={e => setContact(e.target.value)}
                     />
                   </div>
 
                   <div className="form-actions">
                     <button type="submit" className="btn primary">
-                      SUBMIT VERIFIED LEAD & GENERATE TRACKING CODE
+                      Save local draft
                     </button>
                     <button type="button" className="btn" onClick={() => setShowTipModal(false)}>
                       CANCEL
@@ -277,6 +309,9 @@ export default function BountyDesk({ onSelectTarget }) {
                         `SUBJECT: ${submittedLead.target}`,
                         submittedLead.docket ? `NCIC / REF: ${submittedLead.docket}` : '',
                         `DRAFTED (local): ${submittedLead.timestamp}`,
+                        `LOCATION: ${submittedLead.location}`,
+                        `OBSERVED: ${submittedLead.observedAt}`,
+                        submittedLead.contact ? `CONTACT: ${submittedLead.contact}` : '',
                         '',
                         submittedLead.details || '(add your observation: what you saw, exactly where, exactly when)',
                       ].filter(Boolean).join(String.fromCharCode(10))}
