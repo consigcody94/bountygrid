@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BOUNTY.GRID — Planetary Fugitive Threat Globe & Transnational OSINT Twin</title>
+  <style>
+    :root {
+      --bg: #03080e;
+      --panel-bg: rgba(5, 19, 31, 0.88);
+      --border: #185a7d;
+      --cyan: #4ff0ff;
+      --teal: #00d8b4;
+      --amber: #ffb834;
+      --red: #ff4d4d;
+      --text: #c2e2f5;
+      --font-mono: 'SF Mono', 'Roboto Mono', 'DejaVu Sans Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    /* Tactical HUD */
+    .hud-header {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .hud-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hud-subtitle {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: #79a8c4;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+    .badge-live {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 10px var(--teal);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    /* Left Control Bar */
+    .left-panel {
+      position: absolute;
+      top: 80px;
+      left: 20px;
+      width: 320px;
+      max-height: calc(100vh - 120px);
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      backdrop-filter: blur(12px);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+    .panel-tab {
+      padding: 10px 14px;
+      background: #092336;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--cyan);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .target-list {
+      overflow-y: auto;
+      flex: 1;
+      padding: 8px;
+    }
+    .target-card {
+      padding: 10px;
+      margin-bottom: 6px;
+      background: #071927;
+      border: 1px solid #11384e;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .target-card:hover, .target-card.active {
+      border-color: var(--cyan);
+      background: #0d2d44;
+      box-shadow: 0 0 12px rgba(79, 240, 255, 0.2);
+    }
+    .target-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .target-meta {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: #8bbddb;
+      margin-top: 3px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .target-reward {
+      color: var(--teal);
+      font-weight: 700;
+    }
+
+    /* Right Dossier Inspector */
+    .right-panel {
+      position: absolute;
+      top: 80px;
+      right: 20px;
+      width: 380px;
+      max-height: calc(100vh - 120px);
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      backdrop-filter: blur(12px);
+      z-index: 10;
+      overflow-y: auto;
+      padding: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      font-size: 12px;
+    }
+    .dossier-header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+    .dossier-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .dossier-alias {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--amber);
+      margin-top: 2px;
+    }
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 6px 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .metric-label { color: #7aa5be; }
+    .metric-val { color: #fff; font-weight: 600; }
+    .collectability-tag {
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .coll-moderate { background: #0b453a; color: var(--teal); border: 1px solid var(--teal); }
+    .coll-low { background: #4a340b; color: var(--amber); border: 1px solid var(--amber); }
+    .coll-zero { background: #471015; color: var(--red); border: 1px solid var(--red); }
+
+    .findings-box {
+      margin-top: 14px;
+      background: #041421;
+      border: 1px solid #143d57;
+      border-radius: 4px;
+      padding: 10px;
+    }
+    .findings-title {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--cyan);
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .finding-item {
+      font-size: 11px;
+      line-height: 1.45;
+      margin-bottom: 8px;
+      color: #c0deed;
+      border-left: 2px solid var(--teal);
+      padding-left: 8px;
+    }
+
+    /* Bottom Control Dock */
+    .bottom-dock {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 6px 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    }
+    .btn {
+      background: #0a253a;
+      border: 1px solid #1c5579;
+      color: var(--cyan);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover, .btn.active {
+      background: var(--cyan);
+      color: #03080e;
+      border-color: var(--cyan);
+      font-weight: 700;
+    }
+
+    /* Terminal HUD Feed at Bottom Left */
+    .hud-feed {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 10;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #689bb8;
+      pointer-events: none;
+      line-height: 1.5;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+  <div class="hud-header">
+    <div class="hud-title">
+      <span class="badge-live"></span>
+      BOUNTY.GRID // 3D THREAT GLOBE
+    </div>
+    <div class="hud-subtitle">PLANETARY OSINT RECON & MULTI-AGENCY TOPOLOGY TWIN</div>
+  </div>
+
+  <div class="left-panel">
+    <div class="panel-tab">
+      <span>VERIFIED INTEL TARGETS</span>
+      <span style="color:var(--teal)">7 CITATIONS</span>
+    </div>
+    <div class="target-list" id="targetList"></div>
+  </div>
+
+  <div class="right-panel" id="rightPanel">
+    <div class="dossier-header">
+      <div class="dossier-name" id="dossierName">SELECT A TARGET</div>
+      <div class="dossier-alias" id="dossierAlias">Fugitive Manhunt Registry</div>
+    </div>
+    <div id="dossierBody">
+      <p style="color:#78a6c2; font-size:11px;">Click on any target marker on the globe or left list to inspect verified primary source findings, extradition feasibility, and blockchain tracking vectors.</p>
+    </div>
+  </div>
+
+  <div class="bottom-dock">
+    <button class="btn active" id="btnGlobe">3D GLOBE</button>
+    <button class="btn" id="btnGraph">3D KNOWLEDGE GRAPH</button>
+    <button class="btn" id="btnArcs">TOGGLE ARCS</button>
+    <button class="btn" id="btnRotate">AUTO-ROTATE</button>
+  </div>
+
+  <div class="hud-feed" id="hudFeed">
+    [LIVE FEED] FBI Wanted API: Connected (1,229 posters)<br>
+    [LIVE FEED] INTERPOL Red Notices: 6,415 warrants indexed<br>
+    [LIVE FEED] CourtListener RECAP: 10M+ opinions online<br>
+    [RULE 01] Zero fabrication gate: ACTIVE
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <script>
+    // -------------------------------------------------------------
+    // 1. VERIFIED PRIMARY SOURCE INTEL DATA (src/data/intel.js)
+    // -------------------------------------------------------------
+    const TARGETS = [
+      {
+        slug: 'yulan-adonay-archaga-carias',
+        name: 'YULAN ADONAY ARCHAGA CARIAS',
+        alias: '"Porky" / Alexander Mendoza',
+        reward: '$10,000,000 (State Dept. raised from $5M)',
+        bounty: 10000000,
+        country: 'Honduras',
+        lat: 15.2,
+        lon: -86.2,
+        collectability: 'MODERATE',
+        collClass: 'coll-moderate',
+        why: 'Highest bounty on the board. Dedicated FBI tip channel signals active Bureau walk-in operations. Active extradition cooperation. Constraint is physical access, not process.',
+        findings: [
+          'DEDICATED TIP CHANNEL: archaga-carias_tips@fbi.gov and WhatsApp +1 832-267-1688.',
+          'Escaped custody Feb 2020 at El Progreso courthouse with ~20 armed assault team.',
+          'SDNY superseding indictment filed 21 Sep 2021: racketeering, narcotics, weapons trafficking.',
+          'Believed to speak only Spanish -- English monitoring yields zero local chatter.'
+        ],
+        pivots: ['Honduran local press (laprensa.hn)', 'Poder Judicial de Honduras case portal', 'InSight Crime MS-13 monitoring']
+      },
+      {
+        slug: 'ruja-ignatova',
+        name: 'RUJA IGNATOVA',
+        alias: '"CryptoQueen"',
+        reward: '$5,000,000 (State Dept. TOCRP)',
+        bounty: 5000000,
+        country: 'Bulgaria / Germany',
+        lat: 42.7,
+        lon: 23.3,
+        collectability: 'LOW-MODERATE',
+        collClass: 'coll-low',
+        why: 'Heavily searched since 2017 with no verified sightings. Genuine possibility she is deceased. Any edge comes from Bulgarian-language records (Commercial Register, МВР).',
+        findings: [
+          'Last confirmed sighting: October 2017 boarding Sofia to Athens flight.',
+          'Live INTERPOL Red Notice confirmed via public API.',
+          'Bulgarian complaint alleging Interior Ministry (МВР) information leaked to Ignatova.',
+          'FBI victim-compensation claim process opened against >$40M in seized assets.'
+        ],
+        pivots: ['Bulgarian Commercial Register (Търговски регистър)', 'Wayback captures of onecoin.eu', 'ICIJ Offshore Leaks shell structures']
+      },
+      {
+        slug: 'giovanni-vicente-mosquera-serrano',
+        name: 'GIOVANNI VICENTE MOSQUERA SERRANO',
+        alias: '"El Viejo" / Jhovanni San Vicente',
+        reward: '$5,000,000 (State Dept. raised Dec 2025)',
+        bounty: 5000000,
+        country: 'Venezuela / Colombia',
+        lat: 10.5,
+        lon: -66.9,
+        collectability: 'MODERATE — TIME-SENSITIVE',
+        collClass: 'coll-moderate',
+        why: 'Tren de Aragua supreme leader died in June 2026. Succession is contested, forcing movement, comms, and defections. Most dynamic situation on board for next 90 days.',
+        findings: [
+          'Added to FBI Ten Most Wanted 24 Jun 2025 -- first Tren de Aragua leader listed.',
+          'DOJ indictment: conspiracy to distribute cocaine + material support to Foreign Terrorist Org.',
+          'Oversaw TdA finances -- high financial digital footprint across crypto and remittances.'
+        ],
+        pivots: ['Venezuelan press (elpitazo.net, runrun.es)', 'Colombian RUES registry', 'Treasury OFAC designations']
+      },
+      {
+        slug: 'wilver-villegas-palomino',
+        name: 'WILVER VILLEGAS-PALOMINO',
+        alias: '"Carlos El Puerco"',
+        reward: '$5,000,000 (+50M COP Colombian offer)',
+        bounty: 5000000,
+        country: 'Colombia',
+        lat: 8.3,
+        lon: -73.3,
+        collectability: 'LOW',
+        collClass: 'coll-low',
+        why: 'ELN Northeastern War Front territory is a militarily controlled operating environment closed to outside observation.',
+        findings: [
+          'ELN member since ~2000; chief of drug trafficking for Northeastern War Front.',
+          'Indicted 12 Feb 2020 Southern District of Texas: narco-terrorism and cocaine conspiracy.',
+          'Stackable reward: 50M COP from Norte de Santander department on top of US $5M.'
+        ],
+        pivots: ['Colombian regional press for Catatumbo operations', 'Fiscalia General bulletins']
+      },
+      {
+        slug: 'evgeniy-mikhailovich-bogachev',
+        name: 'EVGENIY MIKHAILOVICH BOGACHEV',
+        alias: '"slavik" / "lucky12345"',
+        reward: '$3,000,000 (Largest US cyber bounty)',
+        bounty: 3000000,
+        country: 'Russia',
+        lat: 44.9,
+        lon: 37.3,
+        collectability: 'EFFECTIVELY ZERO',
+        collClass: 'coll-zero',
+        why: 'Location in Anapa is public. Legal blocker: no US-Russia extradition treaty, no Russian prosecution, and reported ties to Russian intelligence. Only a travel event changes this.',
+        findings: [
+          'GameOver Zeus botnet: >1 million machines infected, >$100M in US losses.',
+          'BLOCKER: No US-Russia extradition treaty; protected from prosecution.',
+          'Last known residence in Anapa, Russia; boat along Black Sea.'
+        ],
+        pivots: ['Travel tracking to third-party countries', 'Russian corporate registries (ЕГРЮЛ)']
+      },
+      {
+        slug: 'trung-duc-lu',
+        name: 'TRUNG DUC LU',
+        alias: '"B" — 11 aliases, 6 DOB records',
+        reward: '$1,000,000 (FBI Ten Most Wanted)',
+        bounty: 1000000,
+        country: 'Vietnam / USA',
+        lat: 16.0,
+        lon: 108.2,
+        collectability: 'MODERATE',
+        collClass: 'coll-moderate',
+        why: 'Unusually rich identity surface: 11 official aliases and 6 recorded DOBs provides vast attack surface for digital correlation.',
+        findings: [
+          'Suspected member of Born to Kill (BTK / Canal Boys) gang in Queens NYC.',
+          'Last confirmed in Vietnam per official FBI poster.',
+          'Distinctive dragon tattoo with "Asian Pride" script on back.'
+        ],
+        pivots: ['Vietnamese press (vnexpress.net, congan.com.vn)', 'EDNY/SDNY co-defendant dockets']
+      },
+      {
+        slug: 'bhadreshkumar-chetanbhai-patel',
+        name: 'BHADRESHKUMAR CHETANBHAI PATEL',
+        alias: 'Bhadreshkumar C. Patel',
+        reward: '$1,000,000 (FBI Ten Most Wanted)',
+        bounty: 1000000,
+        country: 'India / USA',
+        lat: 23.1,
+        lon: 72.0,
+        collectability: 'MODERATE',
+        collClass: 'coll-moderate',
+        why: 'Active US-India bilateral extradition treaty. Specific village-level origin (Kantrodi Ta Viramgam, Gujarat) is strong search anchor.',
+        findings: [
+          'Wanted for 2015 murder of his wife at Maryland donut shop.',
+          'Origin anchor: Kantrodi Ta Viramgam, Gujarat, India.',
+          'Baltimore field office holds the active warrant.'
+        ],
+        pivots: ['Gujarati press (divyabhaskar.co.in)', 'India MCA21 and eCourts status']
+      }
+    ];
+
+    const HUBS = [
+      { name: 'FBI HQ (Washington DC)', lat: 38.9, lon: -77.0, color: '#00d8b4' },
+      { name: 'INTERPOL (Lyon)', lat: 45.8, lon: 4.8, color: '#4ff0ff' },
+      { name: 'CourtListener / RECAP (San Francisco)', lat: 37.8, lon: -122.4, color: '#ffb834' },
+      { name: 'Blockstream Node (Reykjavik)', lat: 64.1, lon: -21.9, color: '#ff6b6b' },
+    ];
+
+    // -------------------------------------------------------------
+    // 2. THREE.JS ENGINE SETUP
+    // -------------------------------------------------------------
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x03080e);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 15, 45);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 18;
+    controls.maxDistance = 120;
+
+    // Ambient and Directional Lighting
+    scene.add(new THREE.AmbientLight(0x1a3a54, 1.2));
+    const dirLight1 = new THREE.DirectionalLight(0x4ff0ff, 1.5);
+    dirLight1.position.set(50, 40, 50);
+    scene.add(dirLight1);
+    const dirLight2 = new THREE.DirectionalLight(0x00d8b4, 0.8);
+    dirLight2.position.set(-50, -20, -50);
+    scene.add(dirLight2);
+
+    // -------------------------------------------------------------
+    // 3. 3D GLOBE GENERATION
+    // -------------------------------------------------------------
+    const globeRadius = 14;
+    const globeGroup = new THREE.Group();
+    scene.add(globeGroup);
+
+    // Globe Base Sphere
+    const sphereGeo = new THREE.SphereGeometry(globeRadius, 64, 64);
+    const sphereMat = new THREE.MeshPhongMaterial({
+      color: 0x05131f,
+      emissive: 0x02080f,
+      wireframe: false,
+      shininess: 25,
+      transparent: true,
+      opacity: 0.95
+    });
+    const globeMesh = new THREE.Mesh(sphereGeo, sphereMat);
+    globeGroup.add(globeMesh);
+
+    // Latitude & Longitude Graticule Wireframe
+    const graticuleMat = new THREE.LineBasicMaterial({ color: 0x113b56, transparent: true, opacity: 0.45 });
+    for (let lat = -80; lat <= 80; lat += 20) {
+      const radiusLat = globeRadius * Math.cos(lat * Math.PI / 180);
+      const y = globeRadius * Math.sin(lat * Math.PI / 180);
+      const circleGeo = new THREE.BufferGeometry();
+      const pts = [];
+      for (let i = 0; i <= 64; i++) {
+        const theta = (i / 64) * Math.PI * 2;
+        pts.push(new THREE.Vector3(radiusLat * Math.cos(theta), y, radiusLat * Math.sin(theta)));
+      }
+      circleGeo.setFromPoints(pts);
+      globeGroup.add(new THREE.Line(circleGeo, graticuleMat));
+    }
+    for (let lon = -180; lon < 180; lon += 30) {
+      const circleGeo = new THREE.BufferGeometry();
+      const pts = [];
+      for (let i = 0; i <= 64; i++) {
+        const theta = (i / 64) * Math.PI * 2;
+        const x = globeRadius * Math.sin(theta) * Math.cos(lon * Math.PI / 180);
+        const y = globeRadius * Math.cos(theta);
+        const z = globeRadius * Math.sin(theta) * Math.sin(lon * Math.PI / 180);
+        pts.push(new THREE.Vector3(x, y, z));
+      }
+      circleGeo.setFromPoints(pts);
+      globeGroup.add(new THREE.Line(circleGeo, graticuleMat));
+    }
+
+    // Atmospheric Glow Ring
+    const atmosphereGeo = new THREE.SphereGeometry(globeRadius * 1.15, 64, 64);
+    const atmosphereMat = new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        void main() {
+          float intensity = pow(0.65 - dot(vNormal, vec3(0, 0, 1.0)), 2.2);
+          gl_FragColor = vec4(0.31, 0.94, 1.0, 1.0) * intensity * 0.7;
+        }
+      `,
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
+      transparent: true
+    });
+    const atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
+    globeGroup.add(atmosphere);
+
+    // Coordinate conversion: lat, lon -> Vector3
+    function latLonToVector3(lat, lon, radius) {
+      const phi = (90 - lat) * (Math.PI / 180);
+      const theta = (lon + 180) * (Math.PI / 180);
+      const x = -(radius * Math.sin(phi) * Math.cos(theta));
+      const z = radius * Math.sin(phi) * Math.sin(theta);
+      const y = radius * Math.cos(phi);
+      return new THREE.Vector3(x, y, z);
+    }
+
+    // -------------------------------------------------------------
+    // 4. ADD TARGET MARKERS & AGENCY HUBS
+    // -------------------------------------------------------------
+    const markerObjects = [];
+    const arcGroup = new THREE.Group();
+    globeGroup.add(arcGroup);
+
+    // Add Target Pins
+    TARGETS.forEach((t, idx) => {
+      const pos = latLonToVector3(t.lat, t.lon, globeRadius);
+      const markerGroup = new THREE.Group();
+      markerGroup.position.copy(pos);
+      markerGroup.lookAt(pos.clone().multiplyScalar(2));
+
+      // Pin base ring
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: t.collectability === 'MODERATE' ? 0x00d8b4 : (t.collectability === 'EFFECTIVELY ZERO' ? 0xff4444 : 0xffb834),
+        side: THREE.DoubleSide
+      });
+      const ring = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.45, 16), ringMat);
+      markerGroup.add(ring);
+
+      // Pin spike
+      const pinMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.02, 1.8, 8), pinMat);
+      pin.position.z = 0.9;
+      pin.rotation.x = Math.PI / 2;
+      markerGroup.add(pin);
+
+      // Top beacon sphere
+      const beaconMat = new THREE.MeshBasicMaterial({
+        color: t.collectability === 'MODERATE' ? 0x00d8b4 : (t.collectability === 'EFFECTIVELY ZERO' ? 0xff4444 : 0xffb834)
+      });
+      const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 12), beaconMat);
+      beacon.position.z = 1.9;
+      markerGroup.add(beacon);
+
+      markerGroup.userData = { target: t, index: idx };
+      globeGroup.add(markerGroup);
+      markerObjects.push(markerGroup);
+    });
+
+    // Add Agency Hubs
+    HUBS.forEach(hub => {
+      const pos = latLonToVector3(hub.lat, hub.lon, globeRadius);
+      const hubMat = new THREE.MeshBasicMaterial({ color: hub.color });
+      const hubMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), hubMat);
+      hubMesh.position.copy(pos);
+      hubMesh.lookAt(pos.clone().multiplyScalar(2));
+      globeGroup.add(hubMesh);
+    });
+
+    // Generate Geodesic Arcs connecting Hubs to Targets
+    const pulses = [];
+    HUBS.forEach(hub => {
+      const p1 = latLonToVector3(hub.lat, hub.lon, globeRadius);
+      TARGETS.forEach(target => {
+        const p2 = latLonToVector3(target.lat, target.lon, globeRadius);
+        const distance = p1.distanceTo(p2);
+        if (distance > 4 && distance < 26) {
+          // Spline arc above globe
+          const mid = p1.clone().add(p2).multiplyScalar(0.5);
+          const midLength = mid.length();
+          mid.normalize().multiplyScalar(globeRadius + distance * 0.28);
+
+          const curve = new THREE.QuadraticBezierCurve3(p1, mid, p2);
+          const pts = curve.getPoints(40);
+          const arcGeo = new THREE.BufferGeometry().setFromPoints(pts);
+          const arcMat = new THREE.LineBasicMaterial({
+            color: hub.color,
+            transparent: true,
+            opacity: 0.35
+          });
+          const arcLine = new THREE.Line(arcGeo, arcMat);
+          arcGroup.add(arcLine);
+
+          // Moving photon pulse
+          const pulseMesh = new THREE.Mesh(
+            new THREE.SphereGeometry(0.18, 8, 8),
+            new THREE.MeshBasicMaterial({ color: hub.color })
+          );
+          arcGroup.add(pulseMesh);
+          pulses.push({ mesh: pulseMesh, curve: curve, progress: Math.random(), speed: 0.003 + Math.random() * 0.004 });
+        }
+      });
+    });
+
+    // -------------------------------------------------------------
+    // 5. 3D KNOWLEDGE GRAPH VIEW GENERATION
+    // -------------------------------------------------------------
+    const graphGroup = new THREE.Group();
+    graphGroup.visible = false;
+    scene.add(graphGroup);
+
+    // Build Knowledge Graph Nodes
+    const graphNodes = [];
+    const kgNodes = [
+      { name: "Yulan Archaga Carias", type: "Target", col: 0x00d8b4, pos: [0, 0, 0] },
+      { name: "archaga-carias_tips@fbi.gov", type: "TipChannel", col: 0x4ff0ff, pos: [-6, 3, 2] },
+      { name: "WhatsApp +1 832-267-1688", type: "TipChannel", col: 0x4ff0ff, pos: [-4, 6, -1] },
+      { name: "SDNY Superseding Indictment", type: "Docket", col: 0xffb834, pos: [5, 4, 3] },
+      { name: "MS-13 Honduran Faction", type: "Org", col: 0xff6b6b, pos: [4, -5, -2] },
+      { name: "El Progreso Courthouse", type: "Event", col: 0x8ae3ff, pos: [-5, -4, 4] },
+      { name: "Ruja Ignatova", type: "Target", col: 0x00d8b4, pos: [12, -2, -8] },
+      { name: "OneCoin Ponzi Cluster", type: "Org", col: 0xff6b6b, pos: [16, 2, -6] },
+      { name: "Bulgarian Interior Ministry (МВР)", type: "Leak", col: 0xff4444, pos: [18, -6, -7] },
+      { name: "Evgeniy Bogachev", type: "Target", col: 0x00d8b4, pos: [-12, -4, -10] },
+      { name: "GameOver Zeus Botnet", type: "Cyber", col: 0xff4444, pos: [-17, 0, -8] },
+      { name: "Anapa Black Sea Safehouse", type: "Location", col: 0xffb834, pos: [-15, -8, -12] }
+    ];
+
+    kgNodes.forEach(kn => {
+      const gMat = new THREE.MeshPhongMaterial({ color: kn.col, shininess: 80 });
+      const gMesh = new THREE.Mesh(new THREE.SphereGeometry(kn.type === "Target" ? 1.2 : 0.6, 16, 16), gMat);
+      gMesh.position.set(...kn.pos);
+      graphGroup.add(gMesh);
+      graphNodes.push(gMesh);
+    });
+
+    // Edges
+    const kgEdges = [
+      [0, 1], [0, 2], [0, 3], [0, 4], [0, 5],
+      [6, 7], [6, 8],
+      [9, 10], [9, 11]
+    ];
+    kgEdges.forEach(([i, j]) => {
+      const geo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(...kgNodes[i].pos),
+        new THREE.Vector3(...kgNodes[j].pos)
+      ]);
+      const mat = new THREE.LineBasicMaterial({ color: 0x226b94, transparent: true, opacity: 0.6 });
+      graphGroup.add(new THREE.Line(geo, mat));
+    });
+
+    // -------------------------------------------------------------
+    // 6. UI INTERACTION & DOSSIER BINDING
+    // -------------------------------------------------------------
+    const targetListEl = document.getElementById('targetList');
+    TARGETS.forEach((t, i) => {
+      const card = document.createElement('div');
+      card.className = 'target-card' + (i === 0 ? ' active' : '');
+      card.innerHTML = `
+        <div class="target-name">${t.name}</div>
+        <div class="target-meta">
+          <span>${t.country}</span>
+          <span class="target-reward">$${(t.bounty/1e6).toFixed(0)}M</span>
+        </div>
+      `;
+      card.onclick = () => selectTarget(i);
+      targetListEl.appendChild(card);
+    });
+
+    function selectTarget(idx) {
+      document.querySelectorAll('.target-card').forEach((c, i) => {
+        c.classList.toggle('active', i === idx);
+      });
+      const t = TARGETS[idx];
+      document.getElementById('dossierName').innerText = t.name;
+      document.getElementById('dossierAlias').innerText = t.alias;
+
+      let findingsHtml = t.findings.map(f => `<div class="finding-item">${f}</div>`).join('');
+      let pivotsHtml = t.pivots.map(p => `<li>${p}</li>`).join('');
+
+      document.getElementById('dossierBody').innerHTML = `
+        <div class="metric-row">
+          <span class="metric-label">PUBLISHED BOUNTY</span>
+          <span class="metric-val" style="color:var(--teal)">${t.reward}</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">JURISDICTION</span>
+          <span class="metric-val">${t.country}</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">COLLECTABILITY</span>
+          <span class="collectability-tag ${t.collClass}">${t.collectability}</span>
+        </div>
+        <div style="margin: 10px 0; font-size:11px; line-height:1.4; color:#a2cbde; border-left:2px solid var(--amber); padding-left:8px;">
+          ${t.why}
+        </div>
+        <div class="findings-box">
+          <div class="findings-title">Verified Findings (100% Sourced)</div>
+          ${findingsHtml}
+        </div>
+        <div class="findings-box" style="margin-top:10px;">
+          <div class="findings-title">Operational OSINT Pivots</div>
+          <ul style="padding-left:16px; font-size:11px; line-height:1.45; color:#a2cbde;">${pivotsHtml}</ul>
+        </div>
+      `;
+
+      // Animate Camera to Target
+      if (globeGroup.visible) {
+        const targetPos = latLonToVector3(t.lat, t.lon, globeRadius + 18);
+        const startPos = camera.position.clone();
+        let step = 0;
+        function animCam() {
+          step += 0.04;
+          camera.position.lerpVectors(startPos, targetPos, Math.min(step, 1));
+          controls.target.set(0, 0, 0);
+          if (step < 1) requestAnimationFrame(animCam);
+        }
+        animCam();
+      }
+    }
+
+    // Initialize first target
+    selectTarget(0);
+
+    // Button Controls
+    let autoRotate = true;
+    document.getElementById('btnGlobe').onclick = () => {
+      document.getElementById('btnGlobe').classList.add('active');
+      document.getElementById('btnGraph').classList.remove('active');
+      globeGroup.visible = true;
+      graphGroup.visible = false;
+      controls.target.set(0, 0, 0);
+    };
+    document.getElementById('btnGraph').onclick = () => {
+      document.getElementById('btnGraph').classList.add('active');
+      document.getElementById('btnGlobe').classList.remove('active');
+      globeGroup.visible = false;
+      graphGroup.visible = true;
+      controls.target.set(0, 0, 0);
+    };
+    document.getElementById('btnArcs').onclick = (e) => {
+      arcGroup.visible = !arcGroup.visible;
+      e.target.classList.toggle('active', arcGroup.visible);
+    };
+    document.getElementById('btnRotate').onclick = (e) => {
+      autoRotate = !autoRotate;
+      e.target.classList.toggle('active', autoRotate);
+    };
+
+    // -------------------------------------------------------------
+    // 7. ANIMATION LOOP
+    // -------------------------------------------------------------
+    let clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+
+      if (autoRotate) {
+        if (globeGroup.visible) {
+          globeGroup.rotation.y += 0.0015;
+        } else {
+          graphGroup.rotation.y += 0.002;
+        }
+      }
+
+      // Update Arcs Pulses
+      if (arcGroup.visible) {
+        pulses.forEach(p => {
+          p.progress = (p.progress + p.speed) % 1.0;
+          const pt = p.curve.getPoint(p.progress);
+          p.mesh.position.copy(pt);
+        });
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

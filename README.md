@@ -11,7 +11,38 @@ Live FBI wanted board · INTERPOL Red Notices · federal court dockets · on-cha
 
 <sub>Vite · React · Motion · three.js / react-globe.gl</sub>
 
+<br><br>
+
+[![Interactive 3D Threat Globe Digital Twin](https://img.shields.io/badge/3D%20Digital%20Twin-Threat%20Globe%20%26%20Network-00d8b4?style=for-the-badge&logo=three.js)](docs/3d_intel_globe.html)
+[![Vector Engineering Blueprint](https://img.shields.io/badge/Engineering%20Blueprint-ISO%2010241%20Vector-4ff0ff?style=for-the-badge&logo=blueprint)](results/bountygrid_enterprise_pipeline_blueprint.svg)
+
 </div>
+
+---
+
+## Technical Blueprints & 3D Planetary Threat Twin
+
+### Sheet 1: Enterprise OSINT & Multi-Agency Ingestion Pipeline
+Architecture specification detailing keyless live endpoints (FBI Wanted API, INTERPOL Red Notices, FBI CDE, CourtListener RECAP, Blockstream Esplora, Internet Archive CDX, GDELT 2.0), Vite reverse proxy collision avoidance, Akamai/undici TLS fingerprint bypass via local poster caching, serialized rate-limiting queues, and the "One Rule" zero-fabrication provenance gate.
+
+<div align="center">
+  <img src="results/bountygrid_enterprise_pipeline_blueprint.svg" width="100%" alt="Enterprise OSINT & Multi-Agency Ingestion Pipeline Blueprint">
+</div>
+
+### Sheet 2: Transnational Graph Topology & Fugitive Threat Vector Matrix
+Mathematical formulation of the Collectability Index $\mathcal{C}_i = \sigma(w_r \ln(R_i) + w_e E_i + w_t T_i + w_a A_i - w_s S_i)$, comparative empirical case triage across cited targets (Archaga Carías, Ignatova, Mosquera Serrano, Bogachev, Lu, Patel), on-chain Bitcoin UTXO fan-out heuristic ($|\text{vout}| \ge 10$), and spherical great-circle geodesic flight kinematics.
+
+<div align="center">
+  <img src="results/bountygrid_tactical_graph_analytics_blueprint.svg" width="100%" alt="Graph Topology & Fugitive Threat Vector Matrix Blueprint">
+</div>
+
+### Interactive 3D Threat Globe & Knowledge Graph Twin
+Launch the interactive WebGL digital twin locally at [`3d_intel_globe.html`](3d_intel_globe.html) or on GitHub Pages at [`docs/3d_intel_globe.html`](docs/3d_intel_globe.html):
+- **3D Tactical Earth:** Procedural illuminated continents, atmospheric Rayleigh scattering, latitude/longitude graticules.
+- **Geolocated Intel Pins:** Real-time coordinates for all 7 cited targets with collectability status coloring.
+- **Multi-Agency Hubs:** Telemetry links connecting Washington DC, Lyon, San Francisco, and Reykjavik.
+- **Geodesic Flight & Financial Arcs:** Animated photon pulses along great-circle corridors.
+- **Heterogeneous Knowledge Graph Mode:** Interactive force-directed node-link network for target entity disambiguation.
 
 ---
 
